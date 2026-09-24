@@ -34,6 +34,7 @@ CLIKCLOK_CLIENT_KEY=...
 CLIKCLOK_CLIENT_SECRET=...
 CLIKCLOK_REDIRECT_URI=http://localhost:8723/callback/
 CLIKCLOK_HOME=./.clikclok
+CLIKCLOK_BROWSER=C:\Program Files\Google\Chrome\Application\chrome.exe   # browser for the login (default: system default)
 ```
 
 ## Usage
