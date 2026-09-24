@@ -53,6 +53,15 @@ static class Upload
         UploadTarget target;
         if (mode == "draft")
         {
+            var ignored = new (object? Value, string Name)[]
+                {
+                    (o.Caption, "--caption"), (o.Visibility, "--visibility"), (o.Comments, "--comments"),
+                    (o.Duet, "--duet"), (o.Stitch, "--stitch"), (o.Commercial, "--commercial"),
+                    (o.AiGenerated, "--ai-generated"), (o.ConfirmMusicUsage ? true : null, "--confirm-music-usage"),
+                }
+                .Where(x => x.Value is not null).Select(x => x.Name).ToArray();
+            if (ignored.Length > 0)
+                Console.WriteLine($"Draft mode: {string.Join(", ", ignored)} ignored; you set these in the TikTok app.");
             Console.WriteLine($"Sending {o.Video.Name} to the TikTok inbox of @{account.Name}.");
             target = await api.InitDraft(accessToken, source, ct);
         }
@@ -135,28 +144,46 @@ static class Upload
             throw new UserError($"The video is {d.TotalSeconds:0} s long; this account may post at most " +
                                 $"{creator.MaxVideoPostDurationSec} s.");
 
-        var caption = o.Caption ?? Prompt.Text("--caption", "Caption (hashtags included, may be empty)", allowEmpty: true);
-        if (caption.Length > MaxCaptionLength)
-            throw new UserError($"The caption has {caption.Length} characters; TikTok allows {MaxCaptionLength}.");
-
+        // Check every given option against the account before asking anything, so a wrong option fails
+        // before any question has been answered.
         var allowed = Visibilities.Where(v => creator.PrivacyLevelOptions.Contains(v.Api)).ToArray();
-        var visibilityValue = o.Visibility ?? Prompt.Choose("--visibility", "Who can view this video?",
-            [.. allowed.Select(v => (v.Value, v.Label))]);
-        var visibility = allowed.FirstOrDefault(v => v.Value == visibilityValue);
-        if (visibility.Api is null)
-            throw new UserError($"This account cannot post with visibility '{visibilityValue}'. Allowed: " +
+        if (o.Visibility is { } givenVisibility && allowed.All(v => v.Value != givenVisibility))
+            throw new UserError($"This account cannot post with visibility '{givenVisibility}'. Allowed: " +
                                 string.Join(", ", allowed.Select(v => v.Value)));
+        foreach (var (given, what, disabled) in new[]
+                 {
+                     (o.Comments, "Comments", creator.CommentDisabled),
+                     (o.Duet, "Duets", creator.DuetDisabled),
+                     (o.Stitch, "Stitches", creator.StitchDisabled),
+                 })
+            if (disabled && given == "on")
+                throw new UserError($"{what} are turned off in this account's TikTok settings.");
+        if (IsBranded(o.Commercial) && o.Visibility == "private")
+            throw new UserError("Branded content cannot be private. Choose another visibility.");
+        if (o.Caption is { Length: > MaxCaptionLength })
+            throw new UserError($"The caption has {o.Caption.Length} characters; TikTok allows {MaxCaptionLength}.");
+
+        var caption = o.Caption ?? AskCaption();
+
+        // Branded content cannot be private, so whichever of the two is asked leaves out the conflicting choice.
+        var visibilityChoices = allowed.Where(v => !IsBranded(o.Commercial) || v.Api != "SELF_ONLY").ToArray();
+        if (visibilityChoices.Length == 0)
+            throw new UserError("This account can only post privately, and branded content cannot be private.");
+        var visibilityValue = o.Visibility ?? Prompt.Choose("--visibility", "Who can view this video?",
+            [.. visibilityChoices.Select(v => (v.Value, v.Label))]);
+        var visibility = allowed.First(v => v.Value == visibilityValue);
 
         var comments = AskInteraction(o.Comments, "--comments", "comments", creator.CommentDisabled);
         var duet = AskInteraction(o.Duet, "--duet", "duets", creator.DuetDisabled);
         var stitch = AskInteraction(o.Stitch, "--stitch", "stitches", creator.StitchDisabled);
 
+        var isPrivate = visibility.Api == "SELF_ONLY";
         var commercial = o.Commercial ?? Prompt.Choose("--commercial",
-            "Does this video promote a brand, product or service?", CommercialChoices);
+            "Does this video promote a brand, product or service?" +
+            (isPrivate ? " (Branded content is not available for private videos.)" : ""),
+            [.. CommercialChoices.Where(c => !isPrivate || !IsBranded(c.Value))]);
         var ownBrand = commercial is "own-brand" or "both";
-        var branded = commercial is "branded" or "both";
-        if (branded && visibility.Api == "SELF_ONLY")
-            throw new UserError("Branded content cannot be private. Choose another visibility.");
+        var branded = IsBranded(commercial);
         if (ownBrand || branded)
             Console.WriteLine(branded
                 ? "Your video will be labeled \"Paid partnership\"."
@@ -194,13 +221,24 @@ static class Upload
     {
         if (disabledByCreator)
         {
-            if (given == "on")
-                throw new UserError($"{what} are turned off in this account's TikTok settings.");
             Console.WriteLine($"{char.ToUpper(what[0])}{what[1..]}: off (turned off in the account's TikTok settings)");
             return false;
         }
         return given is { } value ? value == "on" : Prompt.YesNo(option, $"Allow {what}?");
     }
+
+    static string AskCaption()
+    {
+        while (true)
+        {
+            var caption = Prompt.Text("--caption", "Caption (hashtags included, may be empty)", allowEmpty: true);
+            if (caption.Length <= MaxCaptionLength)
+                return caption;
+            Console.WriteLine($"That is {caption.Length} characters; TikTok allows {MaxCaptionLength}.");
+        }
+    }
+
+    static bool IsBranded(string? commercial) => commercial is "branded" or "both";
 
     static string OnOff(bool on) => on ? "on" : "off";
 }

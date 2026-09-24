@@ -1,6 +1,8 @@
 using System.CommandLine;
 using PostPilot;
 
+DotEnv.Load(Path.Combine(Environment.CurrentDirectory, ".env"));
+
 using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
 var api = new TikTokApi(http);
 

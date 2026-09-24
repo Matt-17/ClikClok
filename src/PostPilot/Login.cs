@@ -15,7 +15,7 @@ static class Login
     {
         var clientKey = settings.RequireClientKey();
         var clientSecret = settings.RequireClientSecret();
-        var redirectUri = settings.RedirectUri;
+        var redirectUri = settings.EffectiveRedirectUri;
 
         var verifier = RandomNumberGenerator.GetString(VerifierChars, 64);
         // TikTok's desktop flow expects the SHA-256 of the verifier hex encoded, not base64url as in RFC 7636.

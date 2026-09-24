@@ -20,6 +20,9 @@ sealed class Settings
         Environment.GetEnvironmentVariable("POSTPILOT_CLIENT_SECRET") is { Length: > 0 } secret ? secret
         : ClientSecret ?? throw new UserError("No client secret configured. Run 'postpilot configure' first.");
 
+    public string EffectiveRedirectUri =>
+        Environment.GetEnvironmentVariable("POSTPILOT_REDIRECT_URI") is { Length: > 0 } uri ? uri : RedirectUri;
+
     public Account? FindAccount(string name) =>
         Accounts.FirstOrDefault(a => string.Equals(a.Name, name.TrimStart('@'), StringComparison.OrdinalIgnoreCase));
 }
