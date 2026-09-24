@@ -9,7 +9,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>clikclok</ToolCommandName>
     <PackageId>ClikClok</PackageId>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Description>Upload videos to TikTok through the official Content Posting API.</Description>
   </PropertyGroup>
 

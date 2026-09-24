@@ -87,13 +87,19 @@ static class Login
         response.Close();
     }
 
-    /// <summary>Opens the URL in CLIKCLOK_BROWSER (a browser executable) if set, otherwise in the default browser.</summary>
+    /// <summary>
+    /// Opens the URL in CLIKCLOK_BROWSER (a browser executable) if set, otherwise in the default browser;
+    /// CLIKCLOK_BROWSER=none only prints it.
+    /// </summary>
     static void OpenBrowser(string url)
     {
         try
         {
             if (Environment.GetEnvironmentVariable("CLIKCLOK_BROWSER") is { Length: > 0 } browser)
-                Process.Start(browser, url);
+            {
+                if (!browser.Equals("none", StringComparison.OrdinalIgnoreCase))
+                    Process.Start(browser, url);
+            }
             else
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
         }
