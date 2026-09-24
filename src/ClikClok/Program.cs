@@ -1,12 +1,12 @@
 using System.CommandLine;
-using PostPilot;
+using ClikClok;
 
 DotEnv.Load(Path.Combine(Environment.CurrentDirectory, ".env"));
 
 using var http = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
 var api = new TikTokApi(http);
 
-var root = new RootCommand("PostPilot: upload videos to TikTok through the official Content Posting API.");
+var root = new RootCommand("ClikClok: upload videos to TikTok through the official Content Posting API.");
 root.Subcommands.Add(ConfigureCommand());
 root.Subcommands.Add(LoginCommand());
 root.Subcommands.Add(AccountsCommand());
@@ -60,7 +60,7 @@ Command AccountsCommand()
     {
         var settings = SettingsStore.Load();
         if (settings.Accounts.Count == 0)
-            Console.WriteLine("No accounts connected. Run 'postpilot login'.");
+            Console.WriteLine("No accounts connected. Run 'clikclok login'.");
         foreach (var a in settings.Accounts)
             Console.WriteLine($"@{a.Name,-24} {a.DisplayName,-24} login valid until {a.RefreshTokenExpiresAt.LocalDateTime:yyyy-MM-dd}  [{a.Scope}]");
         await Task.CompletedTask;

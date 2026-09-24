@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace PostPilot;
+namespace ClikClok;
 
 /// <summary>App credentials and connected accounts, stored in the user profile.</summary>
 sealed class Settings
@@ -13,15 +13,15 @@ sealed class Settings
     public List<Account> Accounts { get; set; } = [];
 
     public string RequireClientKey() =>
-        Environment.GetEnvironmentVariable("POSTPILOT_CLIENT_KEY") is { Length: > 0 } key ? key
-        : ClientKey ?? throw new UserError("No client key configured. Run 'postpilot configure' first.");
+        Environment.GetEnvironmentVariable("CLIKCLOK_CLIENT_KEY") is { Length: > 0 } key ? key
+        : ClientKey ?? throw new UserError("No client key configured. Run 'clikclok configure' first.");
 
     public string RequireClientSecret() =>
-        Environment.GetEnvironmentVariable("POSTPILOT_CLIENT_SECRET") is { Length: > 0 } secret ? secret
-        : ClientSecret ?? throw new UserError("No client secret configured. Run 'postpilot configure' first.");
+        Environment.GetEnvironmentVariable("CLIKCLOK_CLIENT_SECRET") is { Length: > 0 } secret ? secret
+        : ClientSecret ?? throw new UserError("No client secret configured. Run 'clikclok configure' first.");
 
     public string EffectiveRedirectUri =>
-        Environment.GetEnvironmentVariable("POSTPILOT_REDIRECT_URI") is { Length: > 0 } uri ? uri : RedirectUri;
+        Environment.GetEnvironmentVariable("CLIKCLOK_REDIRECT_URI") is { Length: > 0 } uri ? uri : RedirectUri;
 
     public Account? FindAccount(string name) =>
         Accounts.FirstOrDefault(a => string.Equals(a.Name, name.TrimStart('@'), StringComparison.OrdinalIgnoreCase));
@@ -46,8 +46,8 @@ static class SettingsStore
     static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
 
     public static string Directory =>
-        Environment.GetEnvironmentVariable("POSTPILOT_HOME") is { Length: > 0 } home ? home
-        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PostPilot");
+        Environment.GetEnvironmentVariable("CLIKCLOK_HOME") is { Length: > 0 } home ? home
+        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ClikClok");
 
     static string FilePath => Path.Combine(Directory, "settings.json");
 

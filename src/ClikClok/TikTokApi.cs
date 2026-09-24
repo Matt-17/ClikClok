@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
-namespace PostPilot;
+namespace ClikClok;
 
 /// <summary>Thin client for the TikTok Login Kit and Content Posting API (v2).</summary>
 sealed class TikTokApi(HttpClient http)

@@ -5,10 +5,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>PostPilot</RootNamespace>
+    <RootNamespace>ClikClok</RootNamespace>
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>postpilot</ToolCommandName>
-    <PackageId>PostPilot</PackageId>
+    <ToolCommandName>clikclok</ToolCommandName>
+    <PackageId>ClikClok</PackageId>
     <Version>0.1.0</Version>
     <Description>Upload videos to TikTok through the official Content Posting API.</Description>
   </PropertyGroup>

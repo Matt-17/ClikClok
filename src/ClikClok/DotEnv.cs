@@ -1,4 +1,4 @@
-namespace PostPilot;
+namespace ClikClok;
 
 /// <summary>
 /// Loads KEY=VALUE lines from a .env file into the process environment. Variables that are already set

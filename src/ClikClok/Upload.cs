@@ -1,4 +1,4 @@
-namespace PostPilot;
+namespace ClikClok;
 
 sealed record UploadOptions(
     FileInfo Video,
@@ -68,7 +68,7 @@ static class Upload
         else
         {
             if (!account.HasScope("video.publish"))
-                throw new UserError($"@{account.Name} did not grant 'video.publish'. Run 'postpilot login' again.");
+                throw new UserError($"@{account.Name} did not grant 'video.publish'. Run 'clikclok login' again.");
             var postInfo = await AskPostInfo(api, accessToken, o, duration, ct);
             target = await api.InitDirectPost(accessToken, postInfo, source, ct);
         }
@@ -80,7 +80,7 @@ static class Upload
 
         if (o.NoWait)
         {
-            Console.WriteLine("TikTok is processing the video. Check with 'postpilot status'.");
+            Console.WriteLine("TikTok is processing the video. Check with 'clikclok status'.");
             return;
         }
         await WaitForResult(api, settings, account, target.PublishId, ct);
@@ -114,7 +114,7 @@ static class Upload
             }
             if (DateTimeOffset.UtcNow > deadline)
                 throw new UserError($"Still {status.Status} after 15 minutes. Check later with " +
-                                    $"'postpilot status {publishId} --account {account.Name}'.");
+                                    $"'clikclok status {publishId} --account {account.Name}'.");
             await Task.Delay(TimeSpan.FromSeconds(3), ct);
         }
     }
@@ -122,7 +122,7 @@ static class Upload
     public static Account ResolveAccount(Settings settings, string? name)
     {
         if (settings.Accounts.Count == 0)
-            throw new UserError("No TikTok account connected. Run 'postpilot login' first.");
+            throw new UserError("No TikTok account connected. Run 'clikclok login' first.");
         name ??= Prompt.Choose("--account", "Which account?",
             [.. settings.Accounts.Select(a => (a.Name, $"@{a.Name}" + (a.DisplayName is null ? "" : $" ({a.DisplayName})")))]);
         return settings.FindAccount(name)

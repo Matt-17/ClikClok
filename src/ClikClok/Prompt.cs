@@ -1,4 +1,4 @@
-namespace PostPilot;
+namespace ClikClok;
 
 /// <summary>
 /// Terminal questions for settings that were not given as options. There are no defaults: an empty

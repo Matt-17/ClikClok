@@ -1,6 +1,6 @@
 using System.Buffers.Binary;
 
-namespace PostPilot;
+namespace ClikClok;
 
 static class VideoFile
 {

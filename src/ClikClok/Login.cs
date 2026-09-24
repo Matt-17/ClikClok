@@ -3,7 +3,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace PostPilot;
+namespace ClikClok;
 
 /// <summary>OAuth 2 authorization code flow with PKCE, receiving the redirect on a local HTTP listener.</summary>
 static class Login
@@ -45,8 +45,8 @@ static class Login
         var code = query["code"];
         var ok = error is null && code is not null && query["state"] == state;
         await Respond(context.Response, ok
-            ? "PostPilot is connected. You can close this window."
-            : "PostPilot could not connect. See the terminal for details.");
+            ? "ClikClok is connected. You can close this window."
+            : "ClikClok could not connect. See the terminal for details.");
 
         if (error is not null)
             throw new UserError($"Login failed: {error} {query["error_description"]}");
@@ -78,7 +78,7 @@ static class Login
 
     static async Task Respond(HttpListenerResponse response, string message)
     {
-        var html = $"<!doctype html><meta charset=utf-8><title>PostPilot</title>" +
+        var html = $"<!doctype html><meta charset=utf-8><title>ClikClok</title>" +
                    $"<body style=\"font-family:sans-serif;padding:3em\"><h2>{WebUtility.HtmlEncode(message)}</h2>";
         var bytes = Encoding.UTF8.GetBytes(html);
         response.ContentType = "text/html; charset=utf-8";
@@ -121,7 +121,7 @@ static class Tokens
         if (account.AccessTokenExpiresAt - Margin > now)
             return account.AccessToken;
         if (account.RefreshTokenExpiresAt <= now)
-            throw new UserError($"The login of @{account.Name} has expired. Run 'postpilot login' again.");
+            throw new UserError($"The login of @{account.Name} has expired. Run 'clikclok login' again.");
 
         var token = await api.Refresh(settings.RequireClientKey(), settings.RequireClientSecret(), account.RefreshToken, ct);
         Apply(account, token);
