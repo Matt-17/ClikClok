@@ -42,11 +42,18 @@ Command ConfigureCommand()
 Command LoginCommand()
 {
     var name = new Option<string?>("--name", "-n") { Description = "Local name for the account (default: its TikTok username)" };
-    var command = new Command("login", "Connect a TikTok account through the browser") { name };
+    var local = new Option<bool>("--local", "-l")
+    {
+        Description = $"Store the login in a {SettingsStore.LocalFolder} folder in the current directory (used from there and below)",
+    };
+    var command = new Command("login", "Connect a TikTok account through the browser") { name, local };
     command.SetAction((parse, ct) => Run(async _ =>
     {
+        if (parse.GetValue(local))
+            Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, SettingsStore.LocalFolder));
         var account = await Login.Run(SettingsStore.Load(), api, parse.GetValue(name), ct);
-        Console.WriteLine($"Connected @{account.Name}" + (account.DisplayName is null ? "" : $" ({account.DisplayName})"));
+        Console.WriteLine($"Connected @{account.Name}" + (account.DisplayName is null ? "" : $" ({account.DisplayName})") +
+                          $" in {SettingsStore.Directory}");
         if (!account.HasScope("video.publish"))
             Console.WriteLine("Direct posting was not granted; only --mode draft works for this account.");
     }));

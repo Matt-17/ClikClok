@@ -1,8 +1,12 @@
+using System.Reflection;
 using System.Text.Json;
 
 namespace ClikClok;
 
-/// <summary>App credentials and connected accounts, stored in the user profile.</summary>
+/// <summary>
+/// App credentials and connected accounts. Credentials resolve from environment variables, then this file,
+/// then the values built into the assembly.
+/// </summary>
 sealed class Settings
 {
     public const string DefaultRedirectUri = "http://localhost:8723/callback/";
@@ -14,11 +18,17 @@ sealed class Settings
 
     public string RequireClientKey() =>
         Environment.GetEnvironmentVariable("CLIKCLOK_CLIENT_KEY") is { Length: > 0 } key ? key
-        : ClientKey ?? throw new UserError("No client key configured. Run 'clikclok configure' first.");
+        : ClientKey ?? BuiltIn("ClikClok.ClientKey")
+        ?? throw new UserError("No client key configured. Run 'clikclok configure' first.");
 
     public string RequireClientSecret() =>
         Environment.GetEnvironmentVariable("CLIKCLOK_CLIENT_SECRET") is { Length: > 0 } secret ? secret
-        : ClientSecret ?? throw new UserError("No client secret configured. Run 'clikclok configure' first.");
+        : ClientSecret ?? BuiltIn("ClikClok.ClientSecret")
+        ?? throw new UserError("No client secret configured. Run 'clikclok configure' first.");
+
+    static string? BuiltIn(string key) =>
+        typeof(Settings).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
+            .FirstOrDefault(a => a.Key == key)?.Value is { Length: > 0 } value ? value : null;
 
     public string EffectiveRedirectUri =>
         Environment.GetEnvironmentVariable("CLIKCLOK_REDIRECT_URI") is { Length: > 0 } uri ? uri : RedirectUri;
@@ -45,9 +55,23 @@ static class SettingsStore
 {
     static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { WriteIndented = true };
 
+    public const string LocalFolder = ".clikclok";
+
+    /// <summary>CLIKCLOK_HOME, else the nearest .clikclok folder from the current directory up, else the user profile.</summary>
     public static string Directory =>
         Environment.GetEnvironmentVariable("CLIKCLOK_HOME") is { Length: > 0 } home ? home
-        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ClikClok");
+        : FindLocal() ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ClikClok");
+
+    static string? FindLocal()
+    {
+        for (var dir = new DirectoryInfo(Environment.CurrentDirectory); dir is not null; dir = dir.Parent)
+        {
+            var candidate = Path.Combine(dir.FullName, LocalFolder);
+            if (System.IO.Directory.Exists(candidate))
+                return candidate;
+        }
+        return null;
+    }
 
     static string FilePath => Path.Combine(Directory, "settings.json");
 

@@ -17,4 +17,35 @@
     <PackageReference Include="System.CommandLine" Version="2.0.12" />
   </ItemGroup>
 
+  <!--
+    Builds the TikTok app credentials into the assembly: CLIKCLOK_CLIENT_KEY / CLIKCLOK_CLIENT_SECRET from the
+    environment, otherwise from the .env at the repository root. Read at runtime by BuiltInCredentials.
+  -->
+  <Target Name="EmbedClientCredentials" BeforeTargets="GetAssemblyAttributes">
+    <PropertyGroup>
+      <_ClikClokEnvFile>$(MSBuildThisFileDirectory)..\..\.env</_ClikClokEnvFile>
+    </PropertyGroup>
+    <ReadLinesFromFile File="$(_ClikClokEnvFile)" Condition="Exists('$(_ClikClokEnvFile)')">
+      <Output TaskParameter="Lines" ItemName="_ClikClokEnvLine" />
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <_ClikClokKey>$(CLIKCLOK_CLIENT_KEY)</_ClikClokKey>
+      <_ClikClokSecret>$(CLIKCLOK_CLIENT_SECRET)</_ClikClokSecret>
+      <_ClikClokKey Condition="'$(_ClikClokKey)' == '' and $([System.String]::Copy('%(_ClikClokEnvLine.Identity)').StartsWith('CLIKCLOK_CLIENT_KEY='))">$([System.String]::Copy('%(_ClikClokEnvLine.Identity)').Substring(20).Trim())</_ClikClokKey>
+      <_ClikClokSecret Condition="'$(_ClikClokSecret)' == '' and $([System.String]::Copy('%(_ClikClokEnvLine.Identity)').StartsWith('CLIKCLOK_CLIENT_SECRET='))">$([System.String]::Copy('%(_ClikClokEnvLine.Identity)').Substring(23).Trim())</_ClikClokSecret>
+    </PropertyGroup>
+    <Warning Condition="'$(_ClikClokKey)' == '' or '$(_ClikClokSecret)' == ''"
+             Text="No TikTok client key/secret found; the build needs 'clikclok configure' or CLIKCLOK_CLIENT_* at runtime." />
+    <ItemGroup>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ClikClok.ClientKey</_Parameter1>
+        <_Parameter2>$(_ClikClokKey)</_Parameter2>
+      </AssemblyAttribute>
+      <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>ClikClok.ClientSecret</_Parameter1>
+        <_Parameter2>$(_ClikClokSecret)</_Parameter2>
+      </AssemblyAttribute>
+    </ItemGroup>
+  </Target>
+
 </Project>

@@ -18,10 +18,14 @@ dotnet tool install -g ClikClok --add-source ./nupkg
    **Login Kit** (platform *Desktop*, redirect URI `http://localhost:8723/callback/`) and
    **Content Posting API** (Direct Post enabled), scopes `user.info.basic`, `video.upload`, `video.publish`.
 2. While the app is in sandbox, add every TikTok account that should post as a target user.
-3. `clikclok configure` stores client key and secret (or set `CLIKCLOK_CLIENT_KEY` / `CLIKCLOK_CLIENT_SECRET`).
-4. `clikclok login` once per account.
+3. Put `CLIKCLOK_CLIENT_KEY` and `CLIKCLOK_CLIENT_SECRET` into `.env` at the repository root (or the build
+   environment). The build embeds them into the assembly. At runtime environment variables and
+   `clikclok configure` override the built-in values.
+4. `clikclok login` once per account; `clikclok login --local` stores the login in a `.clikclok` folder in the
+   current directory instead, which is used from that directory and below (keep it out of git).
 
-Settings and tokens live in `%APPDATA%\ClikClok\settings.json` (override with `CLIKCLOK_HOME`).
+Settings and tokens live in `CLIKCLOK_HOME`, else the nearest `.clikclok` folder from the current directory
+upwards, else `%APPDATA%\ClikClok\settings.json`.
 
 A `.env` file in the current directory is loaded at start; real environment variables win over it.
 
