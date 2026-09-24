@@ -40,6 +40,7 @@ CLIKCLOK_BROWSER=C:\Program Files\Google\Chrome\Application\chrome.exe   # brows
 ## Usage
 
 ```
+clikclok login --link copy   # copy the login link instead of opening the browser
 clikclok accounts
 clikclok upload video.mp4 --account crayondraw0 --mode draft
 clikclok upload video.mp4 -a crayondraw0 -m direct -c "Caption #tag" -v public \

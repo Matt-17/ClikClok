@@ -46,12 +46,13 @@ Command LoginCommand()
     {
         Description = $"Store the login in a {SettingsStore.LocalFolder} folder in the current directory (used from there and below)",
     };
-    var command = new Command("login", "Connect a TikTok account through the browser") { name, local };
+    var link = Choice("--link", null, "How to open the TikTok login page: in the browser, or copy the link to the clipboard", "open", "copy");
+    var command = new Command("login", "Connect a TikTok account through the browser") { name, local, link };
     command.SetAction((parse, ct) => Run(async _ =>
     {
         if (parse.GetValue(local))
             Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, SettingsStore.LocalFolder));
-        var account = await Login.Run(SettingsStore.Load(), api, parse.GetValue(name), ct);
+        var account = await Login.Run(SettingsStore.Load(), api, parse.GetValue(name), parse.GetValue(link), ct);
         Console.WriteLine($"Connected @{account.Name}" + (account.DisplayName is null ? "" : $" ({account.DisplayName})") +
                           $" in {SettingsStore.Directory}");
         if (!account.HasScope("video.publish"))

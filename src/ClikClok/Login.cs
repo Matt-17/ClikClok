@@ -11,7 +11,8 @@ static class Login
     const string Scopes = "user.info.basic,video.upload,video.publish";
     const string VerifierChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
 
-    public static async Task<Account> Run(Settings settings, TikTokApi api, string? name, CancellationToken ct)
+    /// <param name="link">How the login page is opened: "open" (browser), "copy" (clipboard); null asks in a terminal.</param>
+    public static async Task<Account> Run(Settings settings, TikTokApi api, string? name, string? link, CancellationToken ct)
     {
         var clientKey = settings.RequireClientKey();
         var clientSecret = settings.RequireClientSecret();
@@ -35,9 +36,21 @@ static class Login
         listener.Prefixes.Add(redirectUri.EndsWith('/') ? redirectUri : redirectUri + "/");
         listener.Start();
 
-        Console.WriteLine("Log in with the TikTok account in your browser. If it does not open, visit:");
-        Console.WriteLine(url);
-        OpenBrowser(url);
+        link ??= Prompt.Interactive
+            ? Prompt.Choose("--link", "How do you want to open the TikTok login page?",
+                [("open", "Open it in the browser"), ("copy", "Copy the link to the clipboard (paste it into the browser you want)")])
+            : "open";
+        if (link == "copy" && Clipboard.TrySet(url))
+        {
+            Console.WriteLine("The login link is on the clipboard: paste it into your browser and log in with the TikTok account.");
+            Console.WriteLine(url);
+        }
+        else
+        {
+            Console.WriteLine("Log in with the TikTok account in your browser. If it does not open, visit:");
+            Console.WriteLine(url);
+            OpenBrowser(url);
+        }
 
         var context = await listener.GetContextAsync().WaitAsync(TimeSpan.FromMinutes(5), ct);
         var query = context.Request.QueryString;
