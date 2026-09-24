@@ -484,3 +484,4 @@ $RECYCLE.BIN/
 # Local secrets
 .env
 .clikclok/
+demo/
