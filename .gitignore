@@ -483,3 +483,4 @@ $RECYCLE.BIN/
 
 # Local secrets
 .env
+.postpilot/
