@@ -115,12 +115,13 @@ Command UploadCommand()
     {
         Description = "Agree to TikTok's Music Usage Confirmation (and Branded Content Policy for branded content)",
     };
-    var yes = new Option<bool>("--yes", "-y") { Description = "Skip the final 'Post now?' question" };
+    var preview = new Option<bool>("--preview", "-p") { Description = "Open the video in the system's player before posting" };
+    var yes = new Option<bool>("--yes", "-y") { Description = "Skip the questions 'Open the video?' and 'Post now?'" };
     var noWait = new Option<bool>("--no-wait") { Description = "Return after the upload instead of waiting for TikTok" };
 
     var command = new Command("upload", "Upload a video. Settings that are not given are asked for.")
     {
-        video, account, mode, caption, visibility, comments, duet, stitch, commercial, aiGenerated, confirmMusic, yes, noWait,
+        video, account, mode, caption, visibility, comments, duet, stitch, commercial, aiGenerated, confirmMusic, preview, yes, noWait,
     };
     command.SetAction((parse, ct) => Run(_ => Upload.Run(SettingsStore.Load(), api, new UploadOptions(
         parse.GetValue(video)!,
@@ -134,6 +135,7 @@ Command UploadCommand()
         parse.GetValue(commercial),
         parse.GetValue(aiGenerated),
         parse.GetValue(confirmMusic),
+        parse.GetValue(preview),
         parse.GetValue(yes),
         parse.GetValue(noWait)), ct)));
     return command;

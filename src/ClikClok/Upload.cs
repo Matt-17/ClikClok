@@ -12,12 +12,15 @@ sealed record UploadOptions(
     string? Commercial,
     string? AiGenerated,
     bool ConfirmMusicUsage,
+    bool Preview,
     bool Yes,
     bool NoWait);
 
 static class Upload
 {
     const int MaxCaptionLength = 2200;
+    const string MusicUsageUrl = "https://www.tiktok.com/legal/page/global/music-usage-confirmation/en";
+    const string BrandedContentPolicyUrl = "https://www.tiktok.com/legal/page/global/bc-policy/en";
 
     static readonly (string Value, string Api, string Label)[] Visibilities =
     [
@@ -139,6 +142,11 @@ static class Upload
     {
         var creator = await api.GetCreatorInfo(accessToken, ct);
         Console.WriteLine($"Posting to @{creator.CreatorUsername} ({creator.CreatorNickname})");
+        Console.WriteLine($"Video: {o.Video.Name} · " + (duration is { } length ? $"{length.TotalSeconds:0.0} s · " : "") +
+                          $"{o.Video.Length / 1_000_000.0:0.0} MB");
+        // The creator sees what is posted: the video opens in the system's player on request.
+        if (o.Preview || (Prompt.Interactive && !o.Yes && Prompt.YesNo("--preview", "Open the video to check it first?")))
+            OpenPreview(o.Video.FullName);
 
         if (duration is { } d && d.TotalSeconds > creator.MaxVideoPostDurationSec)
             throw new UserError($"The video is {d.TotalSeconds:0} s long; this account may post at most " +
@@ -194,8 +202,8 @@ static class Upload
             : Prompt.YesNo("--ai-generated", "Is this video AI-generated?");
 
         var declaration = branded
-            ? "By posting, you agree to TikTok's Branded Content Policy and Music Usage Confirmation."
-            : "By posting, you agree to TikTok's Music Usage Confirmation.";
+            ? $"By posting, you agree to TikTok's Branded Content Policy ({BrandedContentPolicyUrl}) and Music Usage Confirmation ({MusicUsageUrl})."
+            : $"By posting, you agree to TikTok's Music Usage Confirmation ({MusicUsageUrl}).";
         if (o.ConfirmMusicUsage)
             Console.WriteLine(declaration);
         else if (!Prompt.YesNo("--confirm-music-usage", declaration + " Agree?"))
@@ -241,4 +249,16 @@ static class Upload
     static bool IsBranded(string? commercial) => commercial is "branded" or "both";
 
     static string OnOff(bool on) => on ? "on" : "off";
+
+    static void OpenPreview(string path)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true });
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Could not open the video ({e.Message}); open {path} to check it.");
+        }
+    }
 }

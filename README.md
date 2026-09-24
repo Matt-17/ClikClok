@@ -43,6 +43,7 @@ clikclok accounts
 clikclok upload video.mp4 --account crayondraw0 --mode draft
 clikclok upload video.mp4 -a crayondraw0 -m direct -c "Caption #tag" -v public \
   --comments on --duet off --stitch off --commercial none --ai-generated yes --confirm-music-usage -y
+  # -p / --preview opens the video in the player first; asked in the terminal unless -y
 clikclok status <publish-id> -a crayondraw0
 clikclok logout crayondraw0
 ```
