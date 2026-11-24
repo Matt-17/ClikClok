@@ -1,7 +1,8 @@
 # Builds a release when a tag like v0.1.4 is pushed: the .NET tool package for nuget.org and a self-contained
 # clikclok.exe per Windows architecture (zipped, for winget and direct download), attached to a GitHub release.
-# Secrets: CLIKCLOK_CLIENT_KEY and CLIKCLOK_CLIENT_SECRET (embedded by the build), NUGET_API_KEY (optional; without
-# it the nuget.org push is skipped).
+# Secrets: CLIKCLOK_CLIENT_KEY and CLIKCLOK_CLIENT_SECRET (embedded by the build). nuget.org uses Trusted Publishing:
+# a policy on nuget.org for repository Matt-17/ClikClok, workflow release.yml, environment NuGet, and the repository
+# variable NUGET_USER (the nuget.org user that owns the policy).
 name: Release
 
 on:
@@ -9,15 +10,16 @@ on:
     tags: ["v*"]
 
 permissions:
-  contents: write
+  contents: write # the GitHub release
+  id-token: write # nuget.org Trusted Publishing
 
 jobs:
   release:
     runs-on: windows-latest
+    environment: NuGet
     env:
       CLIKCLOK_CLIENT_KEY: ${{ secrets.CLIKCLOK_CLIENT_KEY }}
       CLIKCLOK_CLIENT_SECRET: ${{ secrets.CLIKCLOK_CLIENT_SECRET }}
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -47,10 +49,14 @@ jobs:
           Get-FileHash out/*.zip -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $(Split-Path $_.Path -Leaf)" } |
             Set-Content out/SHA256SUMS.txt
 
+      - name: NuGet login
+        id: login
+        uses: NuGet/login@v1.2.0
+        with:
+          user: ${{ vars.NUGET_USER }}
+
       - name: Push to nuget.org
-        if: ${{ env.NUGET_API_KEY != '' }}
-        run: dotnet nuget push out/*.nupkg --api-key "$env:NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
-        shell: pwsh
+        run: dotnet nuget push out/*.nupkg --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Create GitHub release
         env:

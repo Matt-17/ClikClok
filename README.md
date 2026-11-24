@@ -23,8 +23,9 @@ dotnet tool install -g ClikClok --add-source ./nupkg
 ```
 
 Releases are built by `.github/workflows/release.yml` when a tag `vX.Y.Z` matching the project version is
-pushed. It needs the repository secrets `CLIKCLOK_CLIENT_KEY`, `CLIKCLOK_CLIENT_SECRET` and, for nuget.org,
-`NUGET_API_KEY`.
+pushed. It needs the repository secrets `CLIKCLOK_CLIENT_KEY` and `CLIKCLOK_CLIENT_SECRET`. nuget.org uses Trusted
+Publishing (policy for repository `Matt-17/ClikClok`, workflow `release.yml`, environment `NuGet`) with the
+repository variable `NUGET_USER`.
 
 ## Using your own TikTok app
 
