@@ -56,9 +56,18 @@ jobs:
           user: ${{ vars.NUGET_USER }}
 
       - name: Push to nuget.org
-        run: dotnet nuget push out/*.nupkg --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        shell: pwsh
+        run: |
+          $packages = Get-ChildItem out -Filter *.nupkg
+          if (-not $packages) { Get-ChildItem out; throw "No .nupkg in out" }
+          foreach ($package in $packages) {
+            dotnet nuget push $package.FullName --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" `
+              --source https://api.nuget.org/v3/index.json --skip-duplicate
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }
 
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${{ github.ref_name }}" out/* --title "ClikClok ${{ github.ref_name }}" --generate-notes
+        shell: pwsh
+        run: gh release create "${{ github.ref_name }}" (Get-ChildItem out -File).FullName --title "ClikClok ${{ github.ref_name }}" --generate-notes
