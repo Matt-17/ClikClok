@@ -7,7 +7,6 @@ It works with several TikTok accounts. Website: <https://code-ix.de/clikclok>
 ## Install
 
 ```
-winget install CodeiX.ClikClok      # Windows
 dotnet tool install -g ClikClok     # Windows, macOS, Linux with the .NET 10 SDK
 ```
 

@@ -39,8 +39,6 @@ OVERVIEW = """
 <p>You connect your TikTok account once through TikTok's login page in your browser. Afterwards you upload a video with one command. Before a video is posted, ClikClok shows the account it posts to and asks for every post setting TikTok requires you to choose: who can view the video, whether comments, duets and stitches are allowed, whether the video promotes a brand, whether it is AI-generated, and your agreement to TikTok's Music Usage Confirmation. You can also send a video to your TikTok inbox as a draft and finish it in the TikTok app.</p>
 <p>ClikClok runs entirely on your computer. It has no server, no user accounts of its own and no tracking.</p>
 <h2>Install</h2>
-<p>On Windows with <a href="https://learn.microsoft.com/windows/package-manager/">winget</a>:</p>
-<p><code>winget install CodeiX.ClikClok</code></p>
 <p>On Windows, macOS or Linux with the <a href="https://dotnet.microsoft.com/download">.NET 10 SDK</a>:</p>
 <p><code>dotnet tool install -g ClikClok</code></p>
 <p>Or download <code>clikclok.exe</code> for Windows from the <a href="https://github.com/Matt-17/ClikClok/releases/latest">latest release</a>; it needs nothing else installed.</p>
