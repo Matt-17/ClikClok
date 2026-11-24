@@ -2,9 +2,19 @@
 
 .NET 10 command line tool that uploads videos to TikTok through the official
 [Content Posting API](https://developers.tiktok.com/doc/content-posting-api-get-started).
-It works with several TikTok accounts.
+It works with several TikTok accounts. Website: <https://code-ix.de/clikclok>
 
-## Build and install
+## Install
+
+```
+winget install CodeiX.ClikClok      # Windows
+dotnet tool install -g ClikClok     # Windows, macOS, Linux with the .NET 10 SDK
+```
+
+Or download `clikclok.exe` from the [latest release](https://github.com/Matt-17/ClikClok/releases/latest).
+Then connect your account with `clikclok login` and upload with `clikclok upload video.mp4`.
+
+## Build from source
 
 ```
 dotnet build src/ClikClok
@@ -12,7 +22,13 @@ dotnet pack src/ClikClok -o nupkg
 dotnet tool install -g ClikClok --add-source ./nupkg
 ```
 
-## Setup
+Releases are built by `.github/workflows/release.yml` when a tag `vX.Y.Z` matching the project version is
+pushed. It needs the repository secrets `CLIKCLOK_CLIENT_KEY`, `CLIKCLOK_CLIENT_SECRET` and, for nuget.org,
+`NUGET_API_KEY`.
+
+## Using your own TikTok app
+
+The released builds contain the credentials of the ClikClok TikTok app. To build against your own app instead:
 
 1. Create an app in the [TikTok developer portal](https://developers.tiktok.com/apps) with the products
    **Login Kit** (platform *Desktop*, redirect URI `http://localhost:8723/callback/`) and

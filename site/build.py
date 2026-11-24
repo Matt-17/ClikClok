@@ -38,6 +38,21 @@ OVERVIEW = """
 <h2>How it works</h2>
 <p>You connect your TikTok account once through TikTok's login page in your browser. Afterwards you upload a video with one command. Before a video is posted, ClikClok shows the account it posts to and asks for every post setting TikTok requires you to choose: who can view the video, whether comments, duets and stitches are allowed, whether the video promotes a brand, whether it is AI-generated, and your agreement to TikTok's Music Usage Confirmation. You can also send a video to your TikTok inbox as a draft and finish it in the TikTok app.</p>
 <p>ClikClok runs entirely on your computer. It has no server, no user accounts of its own and no tracking.</p>
+<h2>Install</h2>
+<p>On Windows with <a href="https://learn.microsoft.com/windows/package-manager/">winget</a>:</p>
+<p><code>winget install CodeiX.ClikClok</code></p>
+<p>On Windows, macOS or Linux with the <a href="https://dotnet.microsoft.com/download">.NET 10 SDK</a>:</p>
+<p><code>dotnet tool install -g ClikClok</code></p>
+<p>Or download <code>clikclok.exe</code> for Windows from the <a href="https://github.com/Matt-17/ClikClok/releases/latest">latest release</a>; it needs nothing else installed.</p>
+<h2>Getting started</h2>
+<ol>
+<li>Connect your TikTok account: <code>clikclok login</code>. Your browser opens TikTok's login page; after you allow access, ClikClok remembers the account. Repeat this for every account you want to post to.</li>
+<li>Upload a video: <code>clikclok upload video.mp4</code>. ClikClok asks for the caption and every post setting, shows a summary and posts only after you confirm.</li>
+<li>Or send it to your TikTok inbox as a draft and finish it in the app: <code>clikclok upload video.mp4 --mode draft</code>.</li>
+</ol>
+<p>Other commands: <code>clikclok accounts</code> lists your connected accounts, <code>clikclok status &lt;publish-id&gt;</code> shows whether TikTok has published a video, and <code>clikclok logout &lt;account&gt;</code> disconnects an account. <code>clikclok --help</code> lists all options.</p>
+<h2>Support</h2>
+<p>Questions or problems: <a href="https://github.com/Matt-17/ClikClok/issues">open an issue on GitHub</a> or email <a href="mailto:m.voigt@code-ix.de">m.voigt@code-ix.de</a>.</p>
 <p>Developed by Matthias Voigt, Code-iX, Dresden, Germany.</p>
 """
 

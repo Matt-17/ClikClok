@@ -1,0 +1,58 @@
+# Builds a release when a tag like v0.1.4 is pushed: the .NET tool package for nuget.org and a self-contained
+# clikclok.exe per Windows architecture (zipped, for winget and direct download), attached to a GitHub release.
+# Secrets: CLIKCLOK_CLIENT_KEY and CLIKCLOK_CLIENT_SECRET (embedded by the build), NUGET_API_KEY (optional; without
+# it the nuget.org push is skipped).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      CLIKCLOK_CLIENT_KEY: ${{ secrets.CLIKCLOK_CLIENT_KEY }}
+      CLIKCLOK_CLIENT_SECRET: ${{ secrets.CLIKCLOK_CLIENT_SECRET }}
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Check version matches tag
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content src/ClikClok/ClikClok.csproj)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          if ("v$version" -ne "${{ github.ref_name }}") { throw "Tag ${{ github.ref_name }} does not match project version $version" }
+          if (-not $env:CLIKCLOK_CLIENT_KEY -or -not $env:CLIKCLOK_CLIENT_SECRET) { throw "CLIKCLOK_CLIENT_* secrets are missing" }
+
+      - name: Pack .NET tool
+        run: dotnet pack src/ClikClok -c Release -o out
+
+      - name: Publish Windows executables
+        shell: pwsh
+        run: |
+          foreach ($rid in "win-x64", "win-arm64") {
+            dotnet publish src/ClikClok -c Release -r $rid --self-contained -p:PackAsTool=false `
+              -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o "publish/$rid"
+            Move-Item "publish/$rid/ClikClok.exe" "publish/$rid/clikclok.exe" -Force
+            Compress-Archive -Path "publish/$rid/clikclok.exe" -DestinationPath "out/clikclok-$rid.zip"
+          }
+          Get-FileHash out/*.zip -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  $(Split-Path $_.Path -Leaf)" } |
+            Set-Content out/SHA256SUMS.txt
+
+      - name: Push to nuget.org
+        if: ${{ env.NUGET_API_KEY != '' }}
+        run: dotnet nuget push out/*.nupkg --api-key "$env:NUGET_API_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        shell: pwsh
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${{ github.ref_name }}" out/* --title "ClikClok ${{ github.ref_name }}" --generate-notes

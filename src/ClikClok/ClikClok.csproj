@@ -12,7 +12,20 @@
     <PackageId>ClikClok</PackageId>
     <Version>0.1.4</Version>
     <Description>Upload videos to TikTok through the official Content Posting API.</Description>
+    <Authors>Matthias Voigt</Authors>
+    <Company>Code-iX</Company>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://code-ix.de/clikclok</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Matt-17/ClikClok</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>clikclok-icon.png</PackageIcon>
+    <PackageTags>tiktok;upload;video;cli;content-posting-api</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\assets\clikclok-icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.CommandLine" Version="2.0.12" />
