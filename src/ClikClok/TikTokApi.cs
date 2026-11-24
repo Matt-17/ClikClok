@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 
 namespace ClikClok;
@@ -16,6 +17,7 @@ sealed class TikTokApi(HttpClient http)
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Encoder = MinimalJsonEncoder.Instance,
     };
 
     public Task<TokenResponse> ExchangeCode(string clientKey, string clientSecret, string code, string redirectUri,
@@ -175,3 +177,36 @@ sealed record PublishStatus(
     long UploadedBytes,
     // TikTok's field name is misspelled in the API.
     [property: JsonPropertyName("publicaly_available_post_id")] long[]? PublicPostIds);
+
+/// <summary>
+/// Escapes only what JSON requires. The built-in encoders write emoji as \uXXXX surrogate escapes, which TikTok
+/// shows literally in the caption instead of decoding them.
+/// </summary>
+sealed class MinimalJsonEncoder : JavaScriptEncoder
+{
+    public static readonly MinimalJsonEncoder Instance = new();
+
+    public override int MaxOutputCharactersPerInputCharacter => 6;
+
+    public override bool WillEncode(int unicodeScalar) => unicodeScalar is < 0x20 or '"' or '\\';
+
+    public override unsafe int FindFirstCharacterToEncode(char* text, int textLength)
+    {
+        for (var i = 0; i < textLength; i++)
+            if (WillEncode(text[i]))
+                return i;
+        return -1;
+    }
+
+    public override unsafe bool TryEncodeUnicodeScalar(int unicodeScalar, char* buffer, int bufferLength,
+        out int numberOfCharactersWritten)
+    {
+        var escaped = $"\\u{unicodeScalar:x4}";
+        numberOfCharactersWritten = 0;
+        if (bufferLength < escaped.Length)
+            return false;
+        escaped.CopyTo(new Span<char>(buffer, bufferLength));
+        numberOfCharactersWritten = escaped.Length;
+        return true;
+    }
+}
